@@ -1,0 +1,2 @@
+class AutoScalerException(Exception):
+    pass
