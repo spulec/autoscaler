@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: autoscaler
+Version: 0.0.1
+Summary: AutoScaler makes it easier to create and manage a large number of Launch Configurations and AutoScaling Groups
+Home-page: https://github.com/spulec/autoscaler
+Author: Steve Pulec
+Author-email: spulec@gmail
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN

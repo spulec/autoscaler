@@ -1,4 +1,5 @@
 coverage
-moto
+mock
+https://github.com/spulec/moto/tarball/02fa630a3c88be0d9c104eda12964f4a01084e25
 nose
 sure

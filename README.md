@@ -26,15 +26,15 @@ User data? "echo 'web' > /etc/config"
 
 ```console
 $ autoscaler_launch_config edit web
-Availability zones? us-east-1c
-Launch configuration? web
-Minimum size? 1
-Maxium size? 2
-Desired capacity? 2
-VPC zone identifier? subnet-1234abcd
+Iam Instance Profile? web
+Image id? ami-1234abcd
+Instnace Monitoring? y
+Key name? prod_web
+Security groups? default,web
+User data? "echo 'web' > /etc/config"
 ```
 
-There is also `autoscaler_as_group` which has the same interface for AutoScaling groups.
+There is also `autoscaler_auto_scaling_group` which has the same interface for AutoScaling groups.
 
 # Default Launch Config
 

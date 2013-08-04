@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import boto
 from boto.ec2.autoscale.group import AutoScalingGroup
 from boto.ec2.autoscale.launchconfig import LaunchConfiguration
@@ -5,10 +6,26 @@ from boto.ec2.autoscale.launchconfig import LaunchConfiguration
 from .exceptions import AutoScalerException
 
 DEFAULT_CONFIG_NAME = 'autoscaler_default'
-launch_config_attrs = set([
+launch_config_attrs = [
     "image_id", "key_name", "security_groups", "user_data", "instance_type",
     "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
-])
+]
+empty_launch_config_attrs = OrderedDict()
+for attr_name in launch_config_attrs:
+    empty_launch_config_attrs[attr_name] = ""
+
+autoscaling_group_attrs = [
+    "availability_zones", "default_cooldown", "desired_capacity",
+    "health_check_period", "health_check_type", "launch_config_name",
+    "load_balancers", "max_size", "min_size", "placement_group",
+    "vpc_zone_identifier", "termination_policies"
+]
+empty_group_attrs = OrderedDict()
+for attr_name in autoscaling_group_attrs:
+    if attr_name == 'launch_config_name':
+        # The param is 'launch_config' while the attribute is 'launch_config_name'
+        attr_name = 'launch_config'
+    empty_group_attrs[attr_name] = ""
 
 conn = boto.connect_autoscale()
 
@@ -21,7 +38,7 @@ def update_all_groups(old_name, new_name):
 
 
 def attrs_from_config(config):
-    default_attrs = {}
+    default_attrs = OrderedDict()
     for attr in launch_config_attrs:
         default_attrs[attr] = getattr(config, attr)
     return default_attrs
@@ -30,8 +47,16 @@ def attrs_from_config(config):
 def get_default_config_values():
     default_configs = conn.get_all_launch_configurations(names=[DEFAULT_CONFIG_NAME])
     if not default_configs:
-        return {}
+        return empty_launch_config_attrs
     return attrs_from_config(default_configs[0])
+
+
+def get_config_attributes_or_defaults(name):
+    configs = conn.get_all_launch_configurations(names=[name])
+    if configs:
+        return attrs_from_config(configs[0])
+    else:
+        return get_default_config_values()
 
 
 def add_launch_config(name, **kwargs):
@@ -67,6 +92,21 @@ def edit_launch_config(name, **kwargs):
     conn.delete_launch_configuration(temp_name)
 
     return new_config
+
+
+def attrs_from_group(group):
+    default_attrs = OrderedDict()
+    for attr in autoscaling_group_attrs:
+        default_attrs[attr] = getattr(group, attr)
+    return default_attrs
+
+
+def get_group_attributes_or_defaults(group_name):
+    groups = conn.get_all_groups(names=[group_name])
+    if groups:
+        return attrs_from_group(groups[0])
+    else:
+        return empty_group_attrs
 
 
 def add_auto_scaling_group(name, **kwargs):

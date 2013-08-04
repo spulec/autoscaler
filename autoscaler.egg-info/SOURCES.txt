@@ -1,0 +1,11 @@
+setup.py
+autoscaler/__init__.py
+autoscaler/cli.py
+autoscaler/core.py
+autoscaler/exceptions.py
+autoscaler.egg-info/PKG-INFO
+autoscaler.egg-info/SOURCES.txt
+autoscaler.egg-info/dependency_links.txt
+autoscaler.egg-info/entry_points.txt
+autoscaler.egg-info/requires.txt
+autoscaler.egg-info/top_level.txt

@@ -1,0 +1,4 @@
+boto
+flask
+httpretty>=0.6.1
+Jinja2
