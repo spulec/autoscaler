@@ -13,9 +13,9 @@ Creating and managing a large number of Launch Configurations and AutoScaling Gr
 
 Create a new launch configuration with the ability to override default values.
 
-![](http://github.com/spulec/autoscaler/raw/master/gifs/launch_config_add.gif)
+![](https://spulec.s3.amazonaws.com/launch_config_add.gif)
 
-![](http://github.com/spulec/autoscaler/raw/master/gifs/launch_config_edit.gif)
+![](https://spulec.s3.amazonaws.com/launch_config_edit.gif)
 
 It should be noted that AutoScaler is not actually editing the launch configuration since that is not available in the AutoScaling API. What AutoScaler is actually doing is:
 - creating a temporary launch configuration with the new values
