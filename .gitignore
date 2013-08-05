@@ -1,4 +1,6 @@
-*.egg-info
+dist
+*.mov
+*.egg-info*
 .DS_Store
 *.pyc
 .coverage

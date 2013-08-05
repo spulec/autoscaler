@@ -1,5 +1,3 @@
-# WARNING: This library is still under active development
-
 # AutoScaler - AWS AutoScaling Configuration Tool
 
 [![Build Status](https://travis-ci.org/spulec/autoscaler.png?branch=master)](https://travis-ci.org/spulec/autoscaler)
