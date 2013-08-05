@@ -27,10 +27,9 @@ for attr_name in autoscaling_group_attrs:
         attr_name = 'launch_config'
     empty_group_attrs[attr_name] = ""
 
-conn = boto.connect_autoscale()
-
 
 def update_all_groups(old_name, new_name):
+    conn = boto.connect_autoscale()
     for group in conn.get_all_groups():
         if group.launch_config_name == old_name:
             group.launch_config_name = new_name
@@ -45,6 +44,7 @@ def attrs_from_config(config):
 
 
 def get_default_config_values():
+    conn = boto.connect_autoscale()
     default_configs = conn.get_all_launch_configurations(names=[DEFAULT_CONFIG_NAME])
     if not default_configs:
         return empty_launch_config_attrs
@@ -52,6 +52,7 @@ def get_default_config_values():
 
 
 def get_config_attributes_or_defaults(name):
+    conn = boto.connect_autoscale()
     configs = conn.get_all_launch_configurations(names=[name])
     if configs:
         return attrs_from_config(configs[0])
@@ -60,6 +61,7 @@ def get_config_attributes_or_defaults(name):
 
 
 def add_launch_config(name, **kwargs):
+    conn = boto.connect_autoscale()
     attributes = get_default_config_values()
     attributes.update(kwargs)
     attributes['name'] = name
@@ -69,6 +71,7 @@ def add_launch_config(name, **kwargs):
 
 
 def edit_launch_config(name, **kwargs):
+    conn = boto.connect_autoscale()
     configs = conn.get_all_launch_configurations(names=[name])
     if not configs:
         raise AutoScalerException("No launch configuration could be found for %s", name)
@@ -102,6 +105,7 @@ def attrs_from_group(group):
 
 
 def get_group_attributes_or_defaults(group_name):
+    conn = boto.connect_autoscale()
     groups = conn.get_all_groups(names=[group_name])
     if groups:
         return attrs_from_group(groups[0])
@@ -110,6 +114,7 @@ def get_group_attributes_or_defaults(group_name):
 
 
 def add_auto_scaling_group(name, **kwargs):
+    conn = boto.connect_autoscale()
     kwargs['name'] = name
     config = AutoScalingGroup(**kwargs)
     conn.create_auto_scaling_group(config)
@@ -117,6 +122,7 @@ def add_auto_scaling_group(name, **kwargs):
 
 
 def edit_auto_scaling_group(name, **kwargs):
+    conn = boto.connect_autoscale()
     groups = conn.get_all_groups(names=[name])
     if not groups:
         raise AutoScalerException("No autoscaling groups could be found for %s", name)

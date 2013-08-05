@@ -27,6 +27,8 @@ It should be noted that AutoScaler is not actually editing the launch configurat
 
 There is also `autoscaler_auto_scaling_group` which has the same interface for AutoScaling groups.
 
+You must set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables properly for this to work.
+
 # Default Launch Config
 
 In order for the default values to work, you must create a launch configuration with the name "autoscaler_default". This is where the default values will be pulled from. If there is no such launch configuration, the defaults will just be blank.
