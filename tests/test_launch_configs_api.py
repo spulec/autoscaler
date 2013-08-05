@@ -31,6 +31,8 @@ def test_add_launch_configuration_with_default_config():
         user_data="echo 'default_machine' > /etc/config",
         instance_type='m1.large',
         instance_monitoring=True,
+        instance_profile_name='arn:aws:iam::123456789012:instance-profile/tester',
+        spot_price=0.1,
     )
     conn.create_launch_configuration(config)
     conn.get_all_launch_configurations().should.have.length_of(1)
@@ -44,6 +46,8 @@ def test_add_launch_configuration_with_default_config():
     web_config.user_data.should.equal("echo 'web_machine' > /etc/config")
     web_config.image_id.should.equal('ami-1234abcd')
     web_config.key_name.should.equal('tester')
+    web_config.instance_profile_name.should.equal('arn:aws:iam::123456789012:instance-profile/tester')
+    web_config.spot_price.should.equal(0.1)
 
 
 @mock_autoscaling

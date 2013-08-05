@@ -8,7 +8,8 @@ from .exceptions import AutoScalerException
 DEFAULT_CONFIG_NAME = 'autoscaler_default'
 launch_config_attrs = [
     "image_id", "key_name", "security_groups", "user_data", "instance_type",
-    "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
+    "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
+    "instance_profile_name", "spot_price"
 ]
 empty_launch_config_attrs = OrderedDict()
 for attr_name in launch_config_attrs:

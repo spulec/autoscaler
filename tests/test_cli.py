@@ -29,6 +29,8 @@ def test_launch_config_add(sys, user_input):
         "",
         "",
         "yes",
+        "arn:aws:iam::123456789012:instance-profile/tester",
+        "",
     ]
 
     # Simulate CLI call
@@ -74,6 +76,8 @@ def test_launch_config_edit(sys, user_input):
         "",
         "",
         "yes",
+        "arn:aws:iam::123456789012:instance-profile/tester",
+        "",
     ]
 
     # Simulate CLI call
