@@ -13,26 +13,17 @@ Creating and managing a large number of Launch Configurations and AutoScaling Gr
 
 Create a new launch configuration with the ability to override default values.
 
-TODO: make this a gif of use
-```console
-$ autoscaler_launch_config add web
-Iam Instance Profile? web
-Image id? ami-1234abcd
-Instnace Monitoring? y
-Key name? prod_web
-Security groups? default,web
-User data? "echo 'web' > /etc/config"
-```
+![](http://github.com/spulec/autoscaler/raw/master/gifs/launch_config_add.gif)
 
-```console
-$ autoscaler_launch_config edit web
-Iam Instance Profile? web
-Image id? ami-1234abcd
-Instnace Monitoring? y
-Key name? prod_web
-Security groups? default,web
-User data? "echo 'web' > /etc/config"
-```
+![](http://github.com/spulec/autoscaler/raw/master/gifs/launch_config_edit.gif)
+
+It should be noted that AutoScaler is not actually editing the launch configuration since that is not available in the AutoScaling API. What AutoScaler is actually doing is:
+- creating a temporary launch configuration with the new values
+- moving over all autoscaling groups to the temporary configuration
+- deleting the original launch configuration
+- creating a replacement launch configuration with the same name
+- moving over all autoscaling groups to the replacement configuration
+- deleting the temporary configuration
 
 There is also `autoscaler_auto_scaling_group` which has the same interface for AutoScaling groups.
 
