@@ -51,6 +51,7 @@ def launch_config():
         user_input = read_input("What {}?".format(attr_name), attr_value)
         if attr_name == 'security_groups':
             user_input = [x.strip() for x in user_input.split(",")]
+        user_input = None if user_input == "" else user_input
         new_attributes[attr_name] = user_input
 
     if arguments['add']:
@@ -87,6 +88,7 @@ def autoscaling_group():
             user_input = [x.strip() for x in user_input.split(",")]
         if attr_name == 'default_cooldown':
             user_input = int(user_input)
+        user_input = None if user_input == "" else user_input
         new_attributes[attr_name] = user_input
 
     if arguments['add']:

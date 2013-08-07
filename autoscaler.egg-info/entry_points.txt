@@ -1,4 +1,0 @@
-[console_scripts]
-autoscaler_auto_scaling_group = autoscaler.cli:autoscaling_group
-autoscaler_launch_config = autoscaler.cli:launch_config
-

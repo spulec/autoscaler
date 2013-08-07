@@ -18,7 +18,8 @@ def test_launch_config_add(sys, user_input):
     ]
 
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
-    # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
+    # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
+    # "instance_profile_name", "spot_price"
     user_input.side_effect = [
         'ami-1234abcd',
         'the_key',
