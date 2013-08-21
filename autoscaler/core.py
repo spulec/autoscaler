@@ -1,3 +1,5 @@
+import copy
+
 from collections import OrderedDict
 import boto
 from boto.ec2.autoscale.group import AutoScalingGroup
@@ -44,26 +46,25 @@ def attrs_from_config(config):
     return default_attrs
 
 
-def get_default_config_values():
+def get_config_attributes_or_defaults(config_name):
+    # Get current attributes or default
+    attributes = get_config_values(config_name)
+    if not any(attributes.values()):
+        attributes = get_config_values(DEFAULT_CONFIG_NAME)
+    return attributes
+
+
+def get_config_values(name):
     conn = boto.connect_autoscale()
-    default_configs = conn.get_all_launch_configurations(names=[DEFAULT_CONFIG_NAME])
+    default_configs = conn.get_all_launch_configurations(names=[name])
     if not default_configs:
-        return empty_launch_config_attrs
+        return copy.deepcopy(empty_launch_config_attrs)
     return attrs_from_config(default_configs[0])
 
 
-def get_config_attributes_or_defaults(name):
+def add_launch_config(name, base=DEFAULT_CONFIG_NAME, **kwargs):
     conn = boto.connect_autoscale()
-    configs = conn.get_all_launch_configurations(names=[name])
-    if configs:
-        return attrs_from_config(configs[0])
-    else:
-        return get_default_config_values()
-
-
-def add_launch_config(name, **kwargs):
-    conn = boto.connect_autoscale()
-    attributes = get_default_config_values()
+    attributes = get_config_values(base)
     attributes.update(kwargs)
     attributes['name'] = name
     config = LaunchConfiguration(**attributes)
