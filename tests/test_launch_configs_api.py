@@ -51,6 +51,37 @@ def test_add_launch_configuration_with_default_config():
 
 
 @mock_autoscaling
+def test_add_launch_configuration_with_named_base():
+    conn = boto.connect_autoscale()
+
+    config = LaunchConfiguration(
+        name='named_default_copy_from',
+        image_id='ami-1234abcd',
+        key_name='tester',
+        security_groups=["default"],
+        user_data="echo 'default_machine' > /etc/config",
+        instance_type='m1.large',
+        instance_monitoring=True,
+        instance_profile_name='arn:aws:iam::123456789012:instance-profile/tester',
+        spot_price=0.1,
+    )
+    conn.create_launch_configuration(config)
+    conn.get_all_launch_configurations().should.have.length_of(1)
+
+    add_launch_config("web", base='named_default_copy_from', user_data="echo 'web_machine' > /etc/config")
+
+    configs = conn.get_all_launch_configurations(names=['web'])
+    configs.should.have.length_of(1)
+    web_config = configs[0]
+
+    web_config.user_data.should.equal("echo 'web_machine' > /etc/config")
+    web_config.image_id.should.equal('ami-1234abcd')
+    web_config.key_name.should.equal('tester')
+    web_config.instance_profile_name.should.equal('arn:aws:iam::123456789012:instance-profile/tester')
+    web_config.spot_price.should.equal(0.1)
+
+
+@mock_autoscaling
 def test_edit_launch_configuration():
     add_launch_config("web", user_data="echo 'web_machine' > /etc/config")
 
