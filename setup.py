@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='autoscaler',
-    version='0.0.3',
+    version='0.0.4',
     description='AutoScaler makes it easier to create and manage a large '
                 'number of Launch Configurations and AutoScaling Groups',
     author='Steve Pulec',
