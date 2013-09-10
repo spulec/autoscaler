@@ -1,6 +1,6 @@
 coverage
 https://github.com/spulec/python-coveralls/tarball/796d9dba34b759664e42ba39e6414209a0f319ad
 mock
-https://github.com/spulec/moto/tarball/02fa630a3c88be0d9c104eda12964f4a01084e25
+moto
 nose
 sure
