@@ -19,7 +19,7 @@ def test_launch_config_add(sys, user_input):
 
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
     # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
-    # "instance_profile_name", "spot_price"
+    # "instance_profile_name", "spot_price", "ebs_optimized"
     user_input.side_effect = [
         'ami-1234abcd',
         'the_key',
@@ -32,6 +32,7 @@ def test_launch_config_add(sys, user_input):
         "yes",
         "arn:aws:iam::123456789012:instance-profile/tester",
         "",
+        "yes",
     ]
 
     # Simulate CLI call
@@ -51,6 +52,7 @@ def test_launch_config_add(sys, user_input):
     config.ramdisk_id.should.equal("")
     list(config.block_device_mappings).should.equal([])
     config.instance_monitoring.enabled.should.equal('true')
+    config.ebs_optimized.should.equal(True)
 
 
 @mock_autoscaling()
@@ -67,6 +69,7 @@ def test_launch_config_edit(sys, user_input):
 
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
     # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
+    # "instance_profile_name", "spot_price", "ebs_optimized"
     user_input.side_effect = [
         "",
         "",
@@ -79,6 +82,7 @@ def test_launch_config_edit(sys, user_input):
         "yes",
         "arn:aws:iam::123456789012:instance-profile/tester",
         "",
+        "no",
     ]
 
     # Simulate CLI call
@@ -89,6 +93,7 @@ def test_launch_config_edit(sys, user_input):
     configs.should.have.length_of(1)
     web_config = configs[0]
     web_config.user_data.should.equal("echo 'other_machine' > /etc/config")
+    web_config.ebs_optimized.should.equal(False)
 
 
 @mock_autoscaling()

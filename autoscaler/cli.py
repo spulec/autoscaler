@@ -48,9 +48,16 @@ def launch_config():
             continue
         if attr_name == 'security_groups':
             attr_value = ",".join(attr_value)
+
         user_input = read_input("What {}?".format(attr_name), attr_value)
+
         if attr_name == 'security_groups':
             user_input = [x.strip() for x in user_input.split(",")]
+        if attr_name == 'ebs_optimized':
+            if user_input.lower() in ['yes', 'y']:
+                user_input = True
+            elif user_input.lower() in ['no', 'n']:
+                user_input = False
         user_input = None if user_input == "" else user_input
         new_attributes[attr_name] = user_input
 
