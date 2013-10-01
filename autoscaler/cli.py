@@ -17,8 +17,10 @@ get_input = raw_input
 
 
 def read_input(prompt, prefill=''):
-    # We need to cast text since insert_text only takes strings
-    readline.set_startup_hook(lambda: readline.insert_text(unicode(prefill)))
+    if prefill:
+        # We need to cast text since insert_text only takes strings
+        prefill = unicode(prefill)
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
     try:
         return get_input(prompt)
     finally:
