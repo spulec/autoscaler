@@ -1,5 +1,5 @@
 import boto
-from mock import patch
+from mock import patch, call
 from moto import mock_autoscaling
 import sure  # noqa
 
@@ -31,7 +31,7 @@ def test_launch_config_add(sys, user_input):
         "",
         "yes",
         "arn:aws:iam::123456789012:instance-profile/tester",
-        "",
+        "0.2",
         "yes",
     ]
 
@@ -52,14 +52,20 @@ def test_launch_config_add(sys, user_input):
     config.ramdisk_id.should.equal("")
     list(config.block_device_mappings).should.equal([])
     config.instance_monitoring.enabled.should.equal('true')
+    config.spot_price.should.equal(0.2)
     config.ebs_optimized.should.equal(True)
 
 
 @mock_autoscaling()
-@patch('autoscaler.cli.get_input')
+@patch('autoscaler.cli.read_input')
 @patch('autoscaler.cli.sys')
-def test_launch_config_edit(sys, user_input):
-    add_launch_config("web", user_data="echo 'web_machine' > /etc/config")
+def test_launch_config_edit(sys, read_input):
+    add_launch_config(
+        "web",
+        user_data="echo 'web_machine' > /etc/config",
+        spot_price=0.2,
+        instance_monitoring=True,
+    )
 
     sys.argv = [
         'autoscaler_launch_config',
@@ -70,7 +76,7 @@ def test_launch_config_edit(sys, user_input):
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
     # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
     # "instance_profile_name", "spot_price", "ebs_optimized"
-    user_input.side_effect = [
+    read_input.side_effect = [
         "",
         "",
         "",
@@ -81,18 +87,95 @@ def test_launch_config_edit(sys, user_input):
         "",
         "yes",
         "arn:aws:iam::123456789012:instance-profile/tester",
-        "",
-        "no",
+        "0.1",
+        "yes",
     ]
 
     # Simulate CLI call
     launch_config()
+
+    list(read_input.mock_calls).should.equal([
+        call('What image_id?', u'None'),
+        call('What key_name?', ''),
+        call('What security_groups?', ''),
+        call('What user_data?', "echo 'web_machine' > /etc/config"),
+        call('What instance_type?', u'm1.small'),
+        call('What kernel_id?', ''),
+        call('What ramdisk_id?', ''),
+        call('What block_device_mappings?', []),
+        call('What instance_monitoring?', "yes"),
+        call('What instance_profile_name?', None),
+        call('What spot_price?', 0.2),
+        call('What ebs_optimized?', "no")
+    ])
 
     conn = boto.connect_autoscale()
     configs = conn.get_all_launch_configurations(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
     web_config.user_data.should.equal("echo 'other_machine' > /etc/config")
+    web_config.ebs_optimized.should.equal(True)
+    web_config.spot_price.should.equal(0.1)
+
+
+@mock_autoscaling()
+@patch('autoscaler.cli.read_input')
+@patch('autoscaler.cli.sys')
+def test_launch_config_edit_with_other_values(sys, read_input):
+    add_launch_config(
+        "web",
+        user_data="echo 'web_machine' > /etc/config",
+        spot_price=0.2,
+        instance_monitoring=True,
+        ebs_optimized=True,
+    )
+
+    sys.argv = [
+        'autoscaler_launch_config',
+        'edit',
+        'web',
+    ]
+
+    # "image_id", "key_name", "security_groups", "user_data", "instance_type",
+    # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
+    # "instance_profile_name", "spot_price", "ebs_optimized"
+    read_input.side_effect = [
+        "",
+        "",
+        "",
+        "echo 'other_machine' > /etc/config",
+        "",
+        "",
+        "",
+        "",
+        "yes",
+        "arn:aws:iam::123456789012:instance-profile/tester",
+        "0.1",
+        "no",
+    ]
+
+    # Simulate CLI call
+    launch_config()
+
+    list(read_input.mock_calls).should.equal([
+        call('What image_id?', u'None'),
+        call('What key_name?', ''),
+        call('What security_groups?', ''),
+        call('What user_data?', "echo 'web_machine' > /etc/config"),
+        call('What instance_type?', u'm1.small'),
+        call('What kernel_id?', ''),
+        call('What ramdisk_id?', ''),
+        call('What block_device_mappings?', []),
+        call('What instance_monitoring?', "yes"),
+        call('What instance_profile_name?', None),
+        call('What spot_price?', 0.2),
+        call('What ebs_optimized?', "yes")
+    ])
+
+    conn = boto.connect_autoscale()
+    configs = conn.get_all_launch_configurations(names=['web'])
+    configs.should.have.length_of(1)
+    web_config = configs[0]
     web_config.ebs_optimized.should.equal(False)
 
 

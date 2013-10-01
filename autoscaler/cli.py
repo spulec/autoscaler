@@ -17,7 +17,8 @@ get_input = raw_input
 
 
 def read_input(prompt, prefill=''):
-    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    # We need to cast text since insert_text only takes strings
+    readline.set_startup_hook(lambda: readline.insert_text(unicode(prefill)))
     try:
         return get_input(prompt)
     finally:
@@ -48,12 +49,22 @@ def launch_config():
             continue
         if attr_name == 'security_groups':
             attr_value = ",".join(attr_value)
+        if attr_name == 'instance_monitoring':
+            if attr_value and attr_value.enabled == 'true':
+                attr_value = 'yes'
+            else:
+                attr_value = 'no'
+        if attr_name == 'ebs_optimized':
+            if attr_value:
+                attr_value = 'yes'
+            else:
+                attr_value = 'no'
 
         user_input = read_input("What {}?".format(attr_name), attr_value)
 
         if attr_name == 'security_groups':
             user_input = [x.strip() for x in user_input.split(",")]
-        if attr_name == 'ebs_optimized':
+        if attr_name in ['instance_monitoring', 'ebs_optimized']:
             if user_input.lower() in ['yes', 'y']:
                 user_input = True
             elif user_input.lower() in ['no', 'n']:
