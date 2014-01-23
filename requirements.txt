@@ -4,3 +4,4 @@ mock
 moto
 nose
 sure
+docopt
