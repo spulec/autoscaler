@@ -19,7 +19,7 @@ def test_launch_config_add(sys, user_input):
 
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
     # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
-    # "instance_profile_name", "spot_price", "ebs_optimized"
+    # "instance_profile_name", "spot_price", "ebs_optimized", "associate_public_ip_address"
     user_input.side_effect = [
         'ami-1234abcd',
         'the_key',
@@ -33,6 +33,7 @@ def test_launch_config_add(sys, user_input):
         "arn:aws:iam::123456789012:instance-profile/tester",
         "0.2",
         "yes",
+        "",
     ]
 
     # Simulate CLI call
@@ -54,6 +55,7 @@ def test_launch_config_add(sys, user_input):
     config.instance_monitoring.enabled.should.equal('true')
     config.spot_price.should.equal(0.2)
     config.ebs_optimized.should.equal(True)
+    config.associate_public_ip_address.should.equal(False)
 
 
 @mock_autoscaling()
@@ -75,7 +77,7 @@ def test_launch_config_edit(sys, read_input):
 
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
     # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
-    # "instance_profile_name", "spot_price", "ebs_optimized"
+    # "instance_profile_name", "spot_price", "ebs_optimized", "associate_public_ip_address"
     read_input.side_effect = [
         "",
         "",
@@ -88,6 +90,7 @@ def test_launch_config_edit(sys, read_input):
         "yes",
         "arn:aws:iam::123456789012:instance-profile/tester",
         "0.1",
+        "yes",
         "yes",
     ]
 
@@ -106,7 +109,8 @@ def test_launch_config_edit(sys, read_input):
         call('What instance_monitoring?', "yes"),
         call('What instance_profile_name?', None),
         call('What spot_price?', 0.2),
-        call('What ebs_optimized?', "no")
+        call('What ebs_optimized?', "no"),
+        call('What associate_public_ip_address?', False),
     ])
 
     conn = boto.connect_autoscale()
@@ -114,8 +118,10 @@ def test_launch_config_edit(sys, read_input):
     configs.should.have.length_of(1)
     web_config = configs[0]
     web_config.user_data.should.equal("echo 'other_machine' > /etc/config")
-    web_config.ebs_optimized.should.equal(True)
     web_config.spot_price.should.equal(0.1)
+    web_config.ebs_optimized.should.equal(True)
+    web_config.associate_public_ip_address.should.equal(True)
+
 
 
 @mock_autoscaling()
@@ -138,7 +144,7 @@ def test_launch_config_edit_with_other_values(sys, read_input):
 
     # "image_id", "key_name", "security_groups", "user_data", "instance_type",
     # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring"
-    # "instance_profile_name", "spot_price", "ebs_optimized"
+    # "instance_profile_name", "spot_price", "ebs_optimized", "associate_public_ip_address"
     read_input.side_effect = [
         "",
         "",
@@ -151,6 +157,7 @@ def test_launch_config_edit_with_other_values(sys, read_input):
         "yes",
         "arn:aws:iam::123456789012:instance-profile/tester",
         "0.1",
+        "no",
         "no",
     ]
 
@@ -169,7 +176,8 @@ def test_launch_config_edit_with_other_values(sys, read_input):
         call('What instance_monitoring?', "yes"),
         call('What instance_profile_name?', None),
         call('What spot_price?', 0.2),
-        call('What ebs_optimized?', "yes")
+        call('What ebs_optimized?', "yes"),
+        call('What associate_public_ip_address?', False),
     ])
 
     conn = boto.connect_autoscale()
@@ -177,6 +185,7 @@ def test_launch_config_edit_with_other_values(sys, read_input):
     configs.should.have.length_of(1)
     web_config = configs[0]
     web_config.ebs_optimized.should.equal(False)
+    web_config.associate_public_ip_address.should.equal(False)
 
 
 @mock_autoscaling()
