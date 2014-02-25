@@ -3,6 +3,7 @@ from __future__ import print_function
 import readline
 import sys
 from docopt import docopt
+from boto.ec2.blockdevicemapping import BlockDeviceType, BlockDeviceMapping
 
 from . import (
     add_launch_config,
@@ -71,7 +72,9 @@ def launch_config():
                 user_input = True
             elif user_input.lower() in ['no', 'n']:
                 user_input = False
-
+        if attr_name == 'block_device_mappings':
+            if user_input:
+                user_input = [_parse_block_device_mappings(user_input)]
         user_input = None if user_input == "" else user_input
         new_attributes[attr_name] = user_input
 
@@ -118,3 +121,95 @@ def autoscaling_group():
     elif arguments['edit']:
         edit_auto_scaling_group(group_name, **new_attributes)
         print("AutoScaling group {} updated".format(group_name))
+
+def _parse_block_device_mappings(user_input):
+    """
+    Parse block device mappings per AWS CLI tools syntax (modified to add IOPS)
+
+    http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html
+
+    Syntax:
+    /dev/xvd[a-z]=[snapshot-id|ephemeral]:[size in GB]:[Delete on Term]:[IOPS]
+    - Leave inapplicable fields blank
+    - Delete on Termination defaults to True
+    - IOPS limits are not validated
+    - EBS sizing is not validated
+
+    Mount an Ephemeral Drive:
+    /dev/xvdb1=ephemeral0
+
+    Mount multiple Ephemeral Drives:
+    /dev/xvdb1=ephemeral0,/dev/xvdb2=ephemeral1
+
+    Mount a Snapshot:
+    /dev/xvdp=snap-1234abcd
+
+    Mount a Snapshot to a 100GB drive:
+    /dev/xvdp=snap-1234abcd:100
+
+    Mount a Snapshot to a 100GB drive and do not delete on termination:
+    /dev/xvdp=snap-1234abcd:100:false
+
+    Mount a Fresh 100GB EBS device
+    /dev/xvdp=:100
+
+    Mount a Fresh 100GB EBS Device and do not delete on termination:
+    /dev/xvdp=:100:false
+
+    Mount a Fresh 100GB EBS Device with 1000 IOPS
+    /dev/xvdp=:100::1000
+    """
+    block_device_map = BlockDeviceMapping()
+    mappings = user_input.split(",")
+    for mapping in mappings:
+        block_type = BlockDeviceType()
+        mount_point, drive_type, size, delete, iops = _parse_drive_mapping(mapping)
+        if 'ephemeral' in drive_type:
+            block_type.ephemeral_name = drive_type
+        elif 'snap' in drive_type:
+            block_type.snapshot_id = drive_type
+            block_type.volume_type = "standard"
+        else:
+            block_type.volume_type = "standard"
+        block_type.size = size
+        block_type.delete_on_termination = delete
+
+        if iops:
+            block_type.iops = iops
+            block_type.volume_type = "io1"
+
+        block_device_map[mount_point] = block_type
+    return block_device_map
+
+def _parse_drive_mapping(mapping):
+    mount_point, drive = mapping.split("=")
+    drive_details = drive.split(":")
+
+    drive_type = safe_list_get(drive_details, 0, '')
+    size = safe_list_get(drive_details, 1, None)
+    delete = safe_list_get(drive_details, 2, "true")
+    iops = safe_list_get(drive_details, 3, None)
+
+    if size:
+        size = int(size)
+    else:
+        size = None
+
+    if delete.lower() == 'false':
+        delete = False
+    else:
+        delete = True
+
+    if iops:
+        iops = int(iops)
+    else:
+        iops = None
+
+    return mount_point, drive_type, size, delete, iops
+
+
+def safe_list_get(l, idx, default):
+    try:
+        return l[idx]
+    except IndexError:
+        return default

@@ -291,3 +291,56 @@ def test_autoscaling_group_edit(sys, user_input):
     configs.should.have.length_of(1)
     web_config = configs[0]
     web_config.max_size.should.equal(1)
+
+
+@mock_autoscaling()
+@patch('autoscaler.cli.get_input')
+@patch('autoscaler.cli.sys')
+def test_launch_config_add(sys, user_input):
+    """
+    Create Launch Config with Block Device Mappings
+    """
+
+    sys.argv = [
+        'autoscaler_launch_config',
+        'add',
+        'web',
+    ]
+
+    # "image_id", "key_name", "security_groups", "user_data", "instance_type",
+    # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
+    # "instance_profile_name", "spot_price", "ebs_optimized"
+    user_input.side_effect = [
+        'ami-1234abcd',
+        'the_key',
+        "default,web",
+        "echo 'web' > /etc/config",
+        "m1.small",
+        "",
+        "",
+        "/dev/xvda=:100::1000",
+        "yes",
+        "arn:aws:iam::123456789012:instance-profile/tester",
+        "0.2",
+        "yes",
+    ]
+
+    # Simulate CLI call
+    launch_config()
+
+    conn = boto.connect_autoscale()
+    configs = conn.get_all_launch_configurations()
+    configs.should.have.length_of(1)
+    config = configs[0]
+    config.name.should.equal("web")
+    config.image_id.should.equal("ami-1234abcd")
+    config.key_name.should.equal("the_key")
+    set(config.security_groups).should.equal(set(["web", "default"]))
+    config.user_data.should.equal("echo 'web' > /etc/config")
+    config.instance_type.should.equal("m1.small")
+    config.kernel_id.should.equal("")
+    config.ramdisk_id.should.equal("")
+    len(config.block_device_mappings).should.equal(1)
+    config.instance_monitoring.enabled.should.equal('true')
+    config.spot_price.should.equal(0.2)
+    config.ebs_optimized.should.equal(True)
