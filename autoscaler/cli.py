@@ -66,11 +66,12 @@ def launch_config():
 
         if attr_name == 'security_groups':
             user_input = [x.strip() for x in user_input.split(",")]
-        if attr_name in ['instance_monitoring', 'ebs_optimized']:
+        if attr_name in ['instance_monitoring', 'ebs_optimized', 'associate_public_ip_address']:
             if user_input.lower() in ['yes', 'y']:
                 user_input = True
             elif user_input.lower() in ['no', 'n']:
                 user_input = False
+
         user_input = None if user_input == "" else user_input
         new_attributes[attr_name] = user_input
 
