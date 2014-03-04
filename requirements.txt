@@ -3,5 +3,5 @@ https://github.com/spulec/python-coveralls/tarball/796d9dba34b759664e42ba39e6414
 mock
 moto>=0.2.19
 nose
-sure
+sure<1.2.3
 docopt
