@@ -16,11 +16,8 @@ setup(
         ],
     },
     packages=find_packages(),
-    dependency_links=[
-        "https://github.com/hltbra/boto/archive/8673805da0c343dbf259bb0473c10ff1f6435094.zip#egg=boto-2.23.0-hltbra",
-    ],
     install_requires=[
-        "boto==2.23.0-hltbra",
+        "boto>=2.25.0",
         "docopt",
     ],
 )
