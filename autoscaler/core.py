@@ -33,11 +33,22 @@ for attr_name in autoscaling_group_attrs:
 
 
 def update_all_groups(old_name, new_name):
-    conn = boto.connect_autoscale()
-    for group in conn.get_all_groups():
+    groups = groups_for_token(token=None)
+    for group in groups:
         if group.launch_config_name == old_name:
             group.launch_config_name = new_name
             group.update()
+
+
+def groups_for_token(token):
+    groups = []
+
+    conn = boto.connect_autoscale()
+    groups_iter = conn.get_all_groups(next_token=token)
+    groups.extend(groups_iter)
+    if groups_iter.next_token:
+        groups.extend(groups_for_token(groups_iter.next_token))
+    return groups
 
 
 def attrs_from_config(config):
