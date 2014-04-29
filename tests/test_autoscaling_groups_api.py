@@ -21,7 +21,7 @@ def test_add_autoscaling_groups():
         launch_config='web_config',
     )
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_groups(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
@@ -40,7 +40,7 @@ def test_edit_autoscaling_group():
         launch_config='web_config',
     )
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_groups(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]

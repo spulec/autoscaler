@@ -11,7 +11,7 @@ from autoscaler import add_launch_config, edit_launch_config, AutoScalerExceptio
 def test_add_launch_configuration():
     add_launch_config("web", user_data="echo 'web_machine' > /etc/config")
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_launch_configurations(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
@@ -21,7 +21,7 @@ def test_add_launch_configuration():
 
 @mock_autoscaling
 def test_add_launch_configuration_with_default_config():
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
 
     config = LaunchConfiguration(
         name='autoscaler_default',
@@ -52,7 +52,7 @@ def test_add_launch_configuration_with_default_config():
 
 @mock_autoscaling
 def test_add_launch_configuration_with_named_base():
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
 
     config = LaunchConfiguration(
         name='named_default_copy_from',
@@ -85,7 +85,7 @@ def test_add_launch_configuration_with_named_base():
 def test_edit_launch_configuration():
     add_launch_config("web", user_data="echo 'web_machine' > /etc/config")
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_launch_configurations(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
@@ -112,7 +112,7 @@ def test_edit_missing_launch_configuration():
 
 @mock_autoscaling
 def test_editing_launch_configuration_update_AS_groups():
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     config = add_launch_config("web", user_data="echo 'web_machine' > /etc/config")
     group = AutoScalingGroup(
         name='web',

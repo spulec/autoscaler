@@ -1,4 +1,5 @@
 import boto
+from boto.ec2.blockdevicemapping import BlockDeviceMapping, BlockDeviceType
 from mock import patch, call
 from moto import mock_autoscaling
 import sure  # noqa
@@ -39,7 +40,7 @@ def test_launch_config_add(sys, user_input):
     # Simulate CLI call
     launch_config()
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_launch_configurations()
     configs.should.have.length_of(1)
     config = configs[0]
@@ -51,11 +52,72 @@ def test_launch_config_add(sys, user_input):
     config.instance_type.should.equal("m1.small")
     config.kernel_id.should.equal("")
     config.ramdisk_id.should.equal("")
-    list(config.block_device_mappings).should.equal([])
+    config.block_device_mappings.should.equal(BlockDeviceMapping())
     config.instance_monitoring.enabled.should.equal('true')
     config.spot_price.should.equal(0.2)
     config.ebs_optimized.should.equal(True)
     config.associate_public_ip_address.should.equal(False)
+
+
+@mock_autoscaling()
+@patch('autoscaler.cli.get_input')
+@patch('autoscaler.cli.sys')
+def test_launch_config_add_with_block_device_mapping(sys, user_input):
+    sys.argv = [
+        'autoscaler_launch_config',
+        'add',
+        'web',
+    ]
+
+    # "image_id", "key_name", "security_groups", "user_data", "instance_type",
+    # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
+    # "instance_profile_name", "spot_price", "ebs_optimized", "associate_public_ip_address"
+    user_input.side_effect = [
+        'ami-1234abcd',
+        'the_key',
+        "default,web",
+        "echo 'web' > /etc/config",
+        "m1.small",
+        "",
+        "",
+        "/dev/xvda=:100,/dev/xvdb=:200,/dev/xvdc=snap-1234abcd:10",
+        "yes",
+        "arn:aws:iam::123456789012:instance-profile/tester",
+        "0.2",
+        "yes",
+        "",
+    ]
+
+    # Simulate CLI call
+    launch_config()
+
+    # Build a fake block device mapping
+    bdm = BlockDeviceMapping()
+    bdm['/dev/xvda'] = BlockDeviceType(volume_id='/dev/xvda', size=100)
+    bdm['/dev/xvdb'] = BlockDeviceType(volume_id='/dev/xvdb', size=200)
+    bdm['/dev/xvdc'] = BlockDeviceType(volume_id='/dev/xvdc', snapshot_id="snap-1234abcd", size=10)
+
+    conn = boto.connect_autoscale(use_block_device_types=True)
+    configs = conn.get_all_launch_configurations()
+    configs.should.have.length_of(1)
+    config = configs[0]
+    config.name.should.equal("web")
+    config.image_id.should.equal("ami-1234abcd")
+    config.key_name.should.equal("the_key")
+    set(config.security_groups).should.equal(set(["web", "default"]))
+    config.user_data.should.equal("echo 'web' > /etc/config")
+    config.instance_type.should.equal("m1.small")
+    config.kernel_id.should.equal("")
+    config.ramdisk_id.should.equal("")
+    config.instance_monitoring.enabled.should.equal('true')
+    config.spot_price.should.equal(0.2)
+    config.ebs_optimized.should.equal(True)
+    config.associate_public_ip_address.should.equal(False)
+    config.block_device_mappings.keys().should.equal(bdm.keys())
+    config.block_device_mappings['/dev/xvda'].size.should.equal(100)
+    config.block_device_mappings['/dev/xvdb'].size.should.equal(200)
+    config.block_device_mappings['/dev/xvdc'].size.should.equal(10)
+    config.block_device_mappings['/dev/xvdc'].snapshot_id.should.equal("snap-1234abcd")
 
 
 @mock_autoscaling()
@@ -105,7 +167,7 @@ def test_launch_config_edit(sys, read_input):
         call('What instance_type?', u'm1.small'),
         call('What kernel_id?', ''),
         call('What ramdisk_id?', ''),
-        call('What block_device_mappings?', []),
+        call('What block_device_mappings?', BlockDeviceMapping()),
         call('What instance_monitoring?', "yes"),
         call('What instance_profile_name?', None),
         call('What spot_price?', 0.2),
@@ -113,7 +175,7 @@ def test_launch_config_edit(sys, read_input):
         call('What associate_public_ip_address?', False),
     ])
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_launch_configurations(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
@@ -172,7 +234,7 @@ def test_launch_config_edit_with_other_values(sys, read_input):
         call('What instance_type?', u'm1.small'),
         call('What kernel_id?', ''),
         call('What ramdisk_id?', ''),
-        call('What block_device_mappings?', []),
+        call('What block_device_mappings?', BlockDeviceMapping()),
         call('What instance_monitoring?', "yes"),
         call('What instance_profile_name?', None),
         call('What spot_price?', 0.2),
@@ -180,7 +242,7 @@ def test_launch_config_edit_with_other_values(sys, read_input):
         call('What associate_public_ip_address?', False),
     ])
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_launch_configurations(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
@@ -223,7 +285,7 @@ def test_autoscaling_group_add(sys, user_input):
     # Simulate CLI call
     autoscaling_group()
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_groups()
     configs.should.have.length_of(1)
     config = configs[0]
@@ -286,61 +348,8 @@ def test_autoscaling_group_edit(sys, user_input):
     # Simulate CLI call
     autoscaling_group()
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_groups(names=['web'])
     configs.should.have.length_of(1)
     web_config = configs[0]
     web_config.max_size.should.equal(1)
-
-
-@mock_autoscaling()
-@patch('autoscaler.cli.get_input')
-@patch('autoscaler.cli.sys')
-def test_launch_config_add(sys, user_input):
-    """
-    Create Launch Config with Block Device Mappings
-    """
-
-    sys.argv = [
-        'autoscaler_launch_config',
-        'add',
-        'web',
-    ]
-
-    # "image_id", "key_name", "security_groups", "user_data", "instance_type",
-    # "kernel_id", "ramdisk_id", "block_device_mappings", "instance_monitoring",
-    # "instance_profile_name", "spot_price", "ebs_optimized"
-    user_input.side_effect = [
-        'ami-1234abcd',
-        'the_key',
-        "default,web",
-        "echo 'web' > /etc/config",
-        "m1.small",
-        "",
-        "",
-        "/dev/xvda=:100::1000",
-        "yes",
-        "arn:aws:iam::123456789012:instance-profile/tester",
-        "0.2",
-        "yes",
-    ]
-
-    # Simulate CLI call
-    launch_config()
-
-    conn = boto.connect_autoscale()
-    configs = conn.get_all_launch_configurations()
-    configs.should.have.length_of(1)
-    config = configs[0]
-    config.name.should.equal("web")
-    config.image_id.should.equal("ami-1234abcd")
-    config.key_name.should.equal("the_key")
-    set(config.security_groups).should.equal(set(["web", "default"]))
-    config.user_data.should.equal("echo 'web' > /etc/config")
-    config.instance_type.should.equal("m1.small")
-    config.kernel_id.should.equal("")
-    config.ramdisk_id.should.equal("")
-    len(config.block_device_mappings).should.equal(1)
-    config.instance_monitoring.enabled.should.equal('true')
-    config.spot_price.should.equal(0.2)
-    config.ebs_optimized.should.equal(True)

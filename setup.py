@@ -17,7 +17,7 @@ setup(
     },
     packages=find_packages(),
     install_requires=[
-        "boto>=2.25.0",
+        "boto>=2.27.0",
         "docopt",
     ],
 )
