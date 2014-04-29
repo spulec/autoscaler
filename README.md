@@ -63,20 +63,26 @@ user_input = "[mount_point]=[snapshot]:[size]:[delete_on_termination]:[iops]"
 user_input = "/dev/xvdb=ephemeral0"
 ```
 
-### Snapshot or EBS Drive
+### EBS Drive
 
 ```python
-# This will preserve the snapshot size
+# Snapshot Drive (preserves size)
 user_input = "/dev/xvdf=snap-1234abcd"
 
 # 100GB Drive
 user_input = "/dev/xvdf=:100"
+
+# 100GB Snapshot Drive
+user_input = "/dev/xvdf=snap-1234abcd:100"
 
 # 100GB Drive without 'Delete on Termination'
 user_input = "/dev/xvdf=:100:false"
 
 # 100GB Drive with 1000 IOPS and no 'Delete on Termination'
 user_input = "/dev/xvdf=:100:false:1000"
+
+# 100GB Drive with 1000 IOPS and default 'Delete on Termination'
+user_input = "/dev/xvdf=:100::1000"
 ```
 
 ## Install
