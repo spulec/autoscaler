@@ -1,7 +1,7 @@
 coverage
 https://github.com/spulec/python-coveralls/tarball/796d9dba34b759664e42ba39e6414209a0f319ad
 mock
-moto>=0.2.19
+moto>=0.2.22
 nose
 sure<=1.2.3
 docopt
