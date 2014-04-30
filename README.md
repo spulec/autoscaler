@@ -41,6 +41,50 @@ add_launch_config("web", user_data="echo 'web_machine' > /etc/config")
 edit_launch_config("web", image_id='ami-abcd1234')
 ```
 
+# Block Device Mappings
+
+A custom syntax has been added to create Block Device Mappings from the command line and convert those to Python objects.
+
+The tested format can be found in `tests/test_parsers.py` but the abbreviated form is available here.  All examples show the expected user input.
+
+### General Format
+
+```python
+# Ephemeral Drive
+user_input = "[mount_point]=[ephemeral_drive]"
+# EBS Drives
+user_input = "[mount_point]=[snapshot]:[size]:[delete_on_termination]:[iops]"
+```
+
+### Ephemeral Drive
+
+```python
+# Note ephemeral[0-7] corresponds to the AWS ephemeral disk mapping
+user_input = "/dev/xvdb=ephemeral0"
+```
+
+### EBS Drive
+
+```python
+# Snapshot Drive (preserves size)
+user_input = "/dev/xvdf=snap-1234abcd"
+
+# 100GB Drive
+user_input = "/dev/xvdf=:100"
+
+# 100GB Snapshot Drive
+user_input = "/dev/xvdf=snap-1234abcd:100"
+
+# 100GB Drive without 'Delete on Termination'
+user_input = "/dev/xvdf=:100:false"
+
+# 100GB Drive with 1000 IOPS and no 'Delete on Termination'
+user_input = "/dev/xvdf=:100:false:1000"
+
+# 100GB Drive with 1000 IOPS and default 'Delete on Termination'
+user_input = "/dev/xvdf=:100::1000"
+```
+
 ## Install
 
 ```console

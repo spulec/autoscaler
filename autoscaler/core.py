@@ -43,7 +43,7 @@ def update_all_groups(old_name, new_name):
 def groups_for_token(token):
     groups = []
 
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     groups_iter = conn.get_all_groups(next_token=token)
     groups.extend(groups_iter)
     if groups_iter.next_token:
@@ -67,7 +67,7 @@ def get_config_attributes_or_defaults(config_name):
 
 
 def get_config_values(name):
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     default_configs = conn.get_all_launch_configurations(names=[name])
     if not default_configs:
         return copy.deepcopy(empty_launch_config_attrs)
@@ -75,7 +75,7 @@ def get_config_values(name):
 
 
 def add_launch_config(name, base=DEFAULT_CONFIG_NAME, **kwargs):
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     attributes = get_config_values(base)
     attributes.update(kwargs)
     attributes['name'] = name
@@ -85,7 +85,7 @@ def add_launch_config(name, base=DEFAULT_CONFIG_NAME, **kwargs):
 
 
 def edit_launch_config(name, **kwargs):
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     configs = conn.get_all_launch_configurations(names=[name])
     if not configs:
         raise AutoScalerException("No launch configuration could be found for %s", name)
@@ -119,7 +119,7 @@ def attrs_from_group(group):
 
 
 def get_group_attributes_or_defaults(group_name):
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     groups = conn.get_all_groups(names=[group_name])
     if groups:
         return attrs_from_group(groups[0])
@@ -128,7 +128,7 @@ def get_group_attributes_or_defaults(group_name):
 
 
 def add_auto_scaling_group(name, **kwargs):
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     kwargs['name'] = name
     config = AutoScalingGroup(**kwargs)
     conn.create_auto_scaling_group(config)
@@ -136,7 +136,7 @@ def add_auto_scaling_group(name, **kwargs):
 
 
 def edit_auto_scaling_group(name, **kwargs):
-    conn = boto.connect_autoscale()
+    conn = boto.connect_autoscale(use_block_device_types=True)
     groups = conn.get_all_groups(names=[name])
     if not groups:
         raise AutoScalerException("No autoscaling groups could be found for %s", name)
